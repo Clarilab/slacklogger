@@ -22,11 +22,23 @@ type SlackLogger interface {
 	// LogWithName prints a formated text, containing the name, to slack
 	LogWithName(name, text string)
 
+	// LogWithChannel prints a text to a given slack channel
+	LogWithChannel(channel, text string)
+
 	// LogWithName prints a simple text to slack, while using the given url as webhookURL
 	LogWithURL(url, text string)
 
 	// LogWithURLAndName prints a formated text, containing the name, to slack, while using the given url as webhookURL
 	LogWithURLAndName(url, name, text string)
+
+	// LogWithName prints a simple text to a given slack channel, while using the given url as webhookURL
+	LogWithChannelAndURL(channel, url, text string)
+
+	// LogWithURLAndName prints a formated text, containing the name, to a given slack channel
+	LogWithChannelAndName(channel, name, text string)
+
+	// LogWithURLAndName prints a formated text, containing the name, to a given slack channel, while using the given url as webhookURL
+	LogWithChannelAndURLAndName(channel, url, name, text string)
 }
 ```
 
