@@ -69,8 +69,10 @@ func (logger *slackLogger) LogWithName(name, text string) {
 func (logger *slackLogger) LogWithURL(url, text string) {
 	message := fmt.Sprintf("env=%s: %s", logger.environment, text)
 
-	if !logger.onlyProd || !logger.isProd {
+	if logger.onlyProd && !logger.isProd {
 		fmt.Println("Logging to Slack: " + message)
+
+		return
 	}
 
 	payload := slack.Payload{
