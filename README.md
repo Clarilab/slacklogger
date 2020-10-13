@@ -1,6 +1,6 @@
 # slacklogger
 
-This client uses [slack-to-webhook](github.com/ashwanthkumar/slack-go-webhook).
+This client uses [slack-to-webhook](https://github.com/ashwanthkumar/slack-go-webhook).
 
 ## Installation
 ```shell
