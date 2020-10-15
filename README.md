@@ -9,7 +9,7 @@ go get github.com/Clarilab/slacklogger
 
 ## Importing
 ```go
-import "github.com/Clarilab/gocloaksession"
+import "github.com/Clarilab/slacklogger"
 ```
 
 ## Features
