@@ -44,12 +44,12 @@ type SlackLogger interface {
 
 ## Example
 ```go
-webhookURL = "https://hooks.slack.com/..."
-channel = "Nicenstein"
-username = "Botty McBootface"
-environment = "prod"
-isProd = true
-onlyProd = true
+webhookURL := "https://hooks.slack.com/..."
+channel := "Nicenstein"
+username := "Botty McBootface"
+environment := "prod"
+isProd := true
+onlyProd := true
 
 slackLogger := NewSlackLogger(webhookURL, channel, username, environment, isProd, onlyProd)
 
