@@ -51,7 +51,7 @@ environment := "prod"
 isProd := true
 onlyProd := true
 
-slackLogger := NewSlackLogger(webhookURL, channel, username, environment, isProd, onlyProd)
+slacker := slacklogger.NewSlackLogger(webhookURL, channel, username, environment, isProd, onlyProd)
 
-slackLogger.Log("Something weird")
+slacker.Log("Something weird")
 ```
