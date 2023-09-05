@@ -23,6 +23,12 @@ func (logger *SlackLogger) Log(message string) {
 	LogWithURL(message, logger.webhookURL, logger.environment, logger.isDebug)
 }
 
+func (logger *SlackLogger) Write(message []byte) (int, error) {
+	logger.Log(string(message))
+
+	return len(message), nil
+}
+
 func LogWithURL(message, url, env string, isDebug bool) {
 	if env != "" {
 		message = fmt.Sprintf("env=%s, %s", env, message)
