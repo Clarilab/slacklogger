@@ -2,84 +2,58 @@ package slacklogger
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-type Field struct {
-	Title string `json:"title"`
-	Value string `json:"value"`
-	Short bool   `json:"short"`
-}
-
-type Action struct {
-	Type  string `json:"type"`
-	Text  string `json:"text"`
-	Url   string `json:"url"`
-	Style string `json:"style"`
-}
-
-type Attachment struct {
-	Fallback     *string   `json:"fallback"`
-	Color        *string   `json:"color"`
-	PreText      *string   `json:"pretext"`
-	AuthorName   *string   `json:"author_name"`
-	AuthorLink   *string   `json:"author_link"`
-	AuthorIcon   *string   `json:"author_icon"`
-	Title        *string   `json:"title"`
-	TitleLink    *string   `json:"title_link"`
-	Text         *string   `json:"text"`
-	ImageUrl     *string   `json:"image_url"`
-	Fields       []*Field  `json:"fields"`
-	Footer       *string   `json:"footer"`
-	FooterIcon   *string   `json:"footer_icon"`
-	Timestamp    *int64    `json:"ts"`
-	MarkdownIn   *[]string `json:"mrkdwn_in"`
-	Actions      []*Action `json:"actions"`
-	CallbackID   *string   `json:"callback_id"`
-	ThumbnailUrl *string   `json:"thumb_url"`
-}
-
+// Payload is the payload send to slack.
 type Payload struct {
-	Parse       string       `json:"parse,omitempty"`
-	Username    string       `json:"username,omitempty"`
-	IconUrl     string       `json:"icon_url,omitempty"`
-	IconEmoji   string       `json:"icon_emoji,omitempty"`
-	Channel     string       `json:"channel,omitempty"`
-	Text        string       `json:"text,omitempty"`
-	LinkNames   string       `json:"link_names,omitempty"`
-	Attachments []Attachment `json:"attachments,omitempty"`
-	UnfurlLinks bool         `json:"unfurl_links,omitempty"`
-	UnfurlMedia bool         `json:"unfurl_media,omitempty"`
-	Markdown    bool         `json:"mrkdwn,omitempty"`
+	Channel   string          `json:"channel"` // required
+	Text      string          `json:"text"`
+	AsUser    bool            `json:"as_user"`
+	Username  string          `json:"username,omitempty"`
+	IconURL   string          `json:"icon_url,omitempty"`
+	IconEmoji string          `json:"icon_emoji,omitempty"`
+	ThreadTS  string          `json:"thread_ts,omitempty"`
+	Parse     string          `json:"parse,omitempty"`
+	LinkNames bool            `json:"link_names,omitempty"`
+	Blocks    json.RawMessage `json:"blocks,omitempty"` // JSON serialized array of blocks
 }
 
-func (attachment *Attachment) AddField(field Field) *Attachment {
-	attachment.Fields = append(attachment.Fields, &field)
-	return attachment
-}
+func (l *SlackLogger) send(ctx context.Context, payload *Payload) error {
+	const (
+		errMessage          = "failed to send to slack: %w"
+		headerContentType   = "Content-Type"
+		headerAuthorization = "Authorization"
+		mimeJSON            = "application/json; charset=utf-8"
+		tokenPrefix         = "Bearer "
+	)
 
-func (attachment *Attachment) AddAction(action Action) *Attachment {
-	attachment.Actions = append(attachment.Actions, &action)
-	return attachment
-}
-
-var ErrFailedToMarshalJSON = fmt.Errorf("failed to marshal payload")
-
-func Send(webhookUrl string, payload Payload) error {
-	jsonBytes, err := json.Marshal(&payload)
+	payloadBytes, err := json.Marshal(&payload)
 	if err != nil {
-		return ErrFailedToMarshalJSON
+		return fmt.Errorf(errMessage, err)
 	}
 
-	resp, err := http.Post(webhookUrl, "application/json", bytes.NewBuffer(jsonBytes))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, l.url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
-		return err
+		return fmt.Errorf(errMessage, err)
 	}
 
-	if resp.StatusCode >= 400 {
-		return error(fmt.Errorf("Error sending msg. Status: %v", resp.Status))
+	req.Header.Set(headerContentType, mimeJSON)
+
+	if l.token != "" {
+		req.Header.Set(headerAuthorization, tokenPrefix+l.token)
+	}
+
+	resp, err := l.client.Do(req)
+	if err != nil {
+		return fmt.Errorf(errMessage, err)
+	}
+
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf(errMessage, newSlackError(resp.Status))
 	}
 
 	return nil

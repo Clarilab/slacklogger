@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Clarilab/slacklogger/v2"
+	"github.com/Clarilab/slacklogger/v3"
 )
 
 func Test_Log(t *testing.T) {
@@ -12,11 +12,16 @@ func Test_Log(t *testing.T) {
 		t.Skip()
 	}
 
-	webhookURL := os.Getenv("WEBHOOK_URL")
-	if webhookURL == "" {
-		t.Fatal("webhook url is not set")
+	url := os.Getenv("SLACK_URL")
+	if url == "" {
+		t.Fatal("slack url is not set")
 	}
 
-	logger := slacklogger.NewSlackLogger(webhookURL, "dev", false)
+	token := os.Getenv("SLACK_TOKEN")
+	if token == "" {
+		t.Fatal("slack token is not set")
+	}
+
+	logger := slacklogger.NewSlackLogger(url, "logs-test", slacklogger.WithAuthorization(token))
 	logger.Log("test message")
 }
